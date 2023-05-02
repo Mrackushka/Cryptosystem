@@ -2,7 +2,7 @@ from cloup import option
 from cloup.constraints import constraint, mutually_exclusive
 
 from .base_cipher import BaseCipher
-from ..ui import add_cipher_options
+from ...ui import add_cipher_options
 
 
 class Caesar(BaseCipher):

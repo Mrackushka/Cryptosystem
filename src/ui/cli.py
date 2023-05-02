@@ -2,7 +2,7 @@ from cloup import group, option_group, option
 from cloup.constraints import require_one
 from functools import reduce
 
-from ..ciphers import BaseCipher, import_ciphers
+from ..logic import BaseCipher, import_ciphers
 
 
 common_cipher_options = option_group(
