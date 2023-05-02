@@ -1,17 +1,12 @@
 from .base_cipher import BaseCipher
 
-# from ..parser import Parser
-
 
 class Mrack(BaseCipher):
     def encrypt(self):
-        pass
+        return "mrack encrypt"
 
     def decrypt(self):
-        pass
+        return "mrack decrypt"
 
     def bruteforce(self):
-        pass
-
-
-# Parser().add_params(Caesar)
+        return "mrack bruteforce"

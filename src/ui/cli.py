@@ -1,22 +1,40 @@
-from cloup import group, option_group, option
-from cloup.constraints import require_one
+from cloup import group, option_group, option, Path
+from cloup.constraints import require_one, constraint
+
 from functools import reduce
 
-from ..logic import BaseCipher, import_ciphers
+from ..logic import BaseCipher, import_ciphers, OptionsParser
 
 
-common_cipher_options = option_group(
-    "Cipher method options",
-    option("-e", "--encrypt", is_flag=True, help="encrypt given text"),
-    option("-d", "--decrypt", is_flag=True, help="decrypt given text"),
-    option(
-        "-b",
-        "--bruteforce",
-        is_flag=True,
-        help="bruteforce given encrypted text",
+common_cipher_option_names = ["encrypt", "decrypt", "bruteforce"]
+common_cipher_options = [
+    option_group(
+        "Cipher method options",
+        option(
+            "-e",
+            "--encrypt",
+            is_flag=True,
+            help="encrypt given text",
+        ),
+        option(
+            "-d",
+            "--decrypt",
+            is_flag=True,
+            help="decrypt given text",
+        ),
+        option(
+            "-b",
+            "--bruteforce",
+            is_flag=True,
+            help="bruteforce given encrypted text",
+        ),
+        constraint=require_one,
     ),
-    constraint=require_one,
-)
+    option("-t", "--text", type=str, help="read input data from text"),
+    option("-f", "--file", type=Path(), help="read input data from file"),
+    option("-o", "--out", type=Path(), help="write output to file"),
+    constraint(require_one, ("text", "file")),
+]
 
 
 cipher_sppecific_options = dict()
@@ -43,14 +61,27 @@ def run_cryptosystem_cli():
     for cipher in BaseCipher.__subclasses__():
         cipher_name = cipher.__name__.lower()
 
-        def func(**kwargs):
-            cipher(**kwargs)  # type: ignore
+        def cipher_func(**cli_options):
+            (
+                cli_options,
+                input_text,
+                cipher_method_name,
+                file_writer,
+            ) = OptionsParser(
+                cli_options, common_cipher_option_names
+            ).parse_options()
+            cipher_method = getattr(
+                cipher(input_text, **cli_options),  # type: ignore
+                cipher_method_name,
+            )
+            cipher_result = cipher_method()
+            file_writer(cipher_result)
 
-        globals()[cipher_name] = func
+        globals()[cipher_name] = cipher_func
         decorators = (
             cryptosystem_cli.command(cipher_name),
-            common_cipher_options,
+            *common_cipher_options,
             *cipher_sppecific_options.get(cipher_name, [lambda func: func]),
         )
-        apply_decorators(func, decorators)
+        apply_decorators(cipher_func, decorators)
     cryptosystem_cli()
