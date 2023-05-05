@@ -3,7 +3,6 @@ from os import path
 
 def load_text_from_file(file_path):
     if path.exists(file_path):
-        print(path.exists(file_path))
         with open(file_path, encoding="utf-8") as f:
             return f.read()
     else:

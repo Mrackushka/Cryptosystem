@@ -60,23 +60,7 @@ def run_cryptosystem_cli():
     import_ciphers()
     for cipher in BaseCipher.__subclasses__():
         cipher_name = cipher.__name__.lower()
-
-        def cipher_func(**cli_options):
-            (
-                cli_options,
-                input_text,
-                cipher_method_name,
-                file_writer,
-            ) = OptionsParser(
-                cli_options, common_cipher_option_names
-            ).parse_options()
-            cipher_method = getattr(
-                cipher(input_text, **cli_options),  # type: ignore
-                cipher_method_name,
-            )
-            cipher_result = cipher_method()
-            file_writer(cipher_result)
-
+        cipher_func = cipher_func_factory(cipher)
         globals()[cipher_name] = cipher_func
         decorators = (
             cryptosystem_cli.command(cipher_name),
@@ -85,3 +69,22 @@ def run_cryptosystem_cli():
         )
         apply_decorators(cipher_func, decorators)
     cryptosystem_cli()
+
+
+def cipher_func_factory(cipher):
+    def cipher_func(**cli_options):
+        (
+            cli_options,
+            input_text,
+            cipher_method_name,
+            file_writer,
+        ) = OptionsParser(
+            cli_options, common_cipher_option_names
+        ).parse_options()
+        cipher_method = getattr(
+            cipher(input_text, **cli_options),
+            cipher_method_name,
+        )
+        cipher_result = cipher_method()
+        file_writer(cipher_result)
+    return cipher_func
