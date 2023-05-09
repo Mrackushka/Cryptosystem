@@ -27,7 +27,18 @@ class OptionsParser:
         else:
 
             def file_writer(text):
-                print(text)
+                unicode_exception_occured = False
+                for letter in text:
+                    try:
+                        print(end=letter)
+                    except UnicodeEncodeError:
+                        unicode_exception_occured = True
+                if unicode_exception_occured:
+                    print(
+                        "\nDue to UnicodeEncodeException symbols wich "
+                        "Python can't encode were replaced by '?', "
+                        "so it might not be properly decoded."
+                    )
 
         del self.cli_options["out"]
         return file_writer

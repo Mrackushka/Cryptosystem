@@ -13,7 +13,7 @@ from ...ui import add_cipher_options
 
 class Caesar(BaseCipher):
     def __init__(self, text, shift, phrase):
-        super().__init__(text)
+        self.text = text
         self.unicode_size = int(0x110000)
         if shift is not None:
             self.shift = shift
@@ -97,8 +97,10 @@ add_cipher_options(
     option(
         "-p",
         "--phrase",
-        help="known decrypted phrase from encrypted text which allows to "
-        "determine correct one from possible decryptions",
+        help="""
+            known decrypted phrase from encrypted text which allows to
+            determine correct one from possible decryptions
+        """,
     ),
     constraint(
         If(
