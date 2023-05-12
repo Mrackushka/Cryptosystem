@@ -1,11 +1,5 @@
 from cloup import option, Path
-from cloup.constraints import (
-    constraint,
-    require_one,
-    accept_none,
-    require_all,
-    If,
-)
+from cloup.constraints import constraint, require_one
 import csv
 from itertools import cycle
 
@@ -15,7 +9,7 @@ from ...ui import add_cipher_options
 
 
 class Trithemius(BaseCipher):
-    def __init__(self, text, key, key_from_file, phrase):
+    def __init__(self, text, key, key_from_file):
         self.text = text
         self.unicode_size = int(0x110000)
         self.key_functions = {
@@ -68,9 +62,6 @@ class Trithemius(BaseCipher):
                 self.decrypt_key_function,
             ) = self._choose_key_function(key)
             self.key = key
-        if phrase is not None:
-            self.phrase = phrase
-            self._validate_phrase()
 
     def encrypt(self):
         encrypted_text = ""
@@ -184,15 +175,6 @@ class Trithemius(BaseCipher):
                 self.decrypt_key_functions["non-linear"],
             )
 
-    def _validate_phrase(self):
-        if len(self.phrase) == 0:
-            self._terminate("Where did the phrase go?")
-        elif len(self.phrase) > len(self.text):
-            self._terminate(
-                "Are you seriously trying to use a phrase from text "
-                "longer than text itself?"
-            )
-
     def _terminate(self, message):
         print(message)
         exit(0)
@@ -268,22 +250,4 @@ add_cipher_options(
         """,
     ),
     constraint(require_one, ("bruteforce", "key", "key_from_file")),
-    option(
-        "-p",
-        "--phrase",
-        help="""
-            known decrypted phrase from encrypted text which allows to
-            determine correct one from possible decryptions
-        """,
-    ),
-    constraint(
-        If(
-            "bruteforce",
-            then=require_all,
-            else_=accept_none.rephrased(
-                error="--phrase should not be provided"
-            ),
-        ),
-        ("phrase", "bruteforce"),
-    ),
 )
