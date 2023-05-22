@@ -1,6 +1,6 @@
 from cloup import option, Path
-from cloup.constraints import constraint, AcceptAtMost
-from random import randint
+from cloup.constraints import constraint, AcceptAtMost, require_one
+import random
 
 from .base_cipher import BaseCipher
 from ..file_operations import load_text_from_file
@@ -8,7 +8,7 @@ from ...ui import add_cipher_options
 
 
 class XOR(BaseCipher):
-    def __init__(self, text: str, key: str, key_from_file: str):
+    def __init__(self, text: str, key: str, key_from_file: str, seed: int):
         self.text = text.strip()
         self.unicode_size = int(0x110000)
         self.message = ""
@@ -17,19 +17,16 @@ class XOR(BaseCipher):
         elif key_from_file is not None:
             self.key = self._validate_key(load_text_from_file(key_from_file))
         else:
-            self.key = self._generate_key()
-            self.message = (
-                f"\n\nText was encrypted using this generated key:\n{self.key}"
-            )
+            if seed is not None:
+                random.seed(seed)
+            self.key = self._generate_seed()
+            # self.message = (
+            # f"\n\nText was encrypted using this generated key:\n{self.key}"
+            # )
 
     def encrypt(self) -> str:
-        print(list(zip(self.text, self.key)))
-        print(ord(self.text[2]) ^ ord(self.key[2]))
-        return (
-            "".join(
-                [chr(ord(ch) ^ ord(k)) for ch, k in zip(self.text, self.key)]
-            )
-            + self.message
+        return "".join(
+            [chr(ord(ch) ^ ord(k)) for ch, k in zip(self.text, self.key)]
         )
 
     def decrypt(self) -> str:
@@ -45,10 +42,10 @@ class XOR(BaseCipher):
         full_key = key * keys_in_text
         return full_key.strip()
 
-    def _generate_key(self) -> str:
+    def _generate_seed(self) -> str:
         return "".join(
             [
-                chr(randint(0, self.unicode_size - 1))
+                chr(random.randint(0, self.unicode_size - 1))
                 for _ in range(len(self.text))
             ]
         )
@@ -70,4 +67,6 @@ add_cipher_options(
         help="the same as --key option, but loads key from file",
     ),
     constraint(AcceptAtMost(1), ("bruteforce", "key", "key_from_file")),
+    option("-s", "--seed", type=int, help="Generate key by seed"),
+    constraint(require_one, ("key", "key_from_file", "seed")),
 )

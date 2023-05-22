@@ -30,9 +30,10 @@ class OptionsParser:
                 unicode_exception_occured = False
                 for letter in text:
                     try:
-                        print(end=letter)
+                        print(letter, end='')
                     except UnicodeEncodeError:
                         unicode_exception_occured = True
+                print()
                 if unicode_exception_occured:
                     print(
                         "\nDue to UnicodeEncodeException symbols wich "
