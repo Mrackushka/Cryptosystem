@@ -88,8 +88,7 @@ add_cipher_options(
         "--key",
         type=str,
         help="""
-            any poem, which contains maximum number of characters from the text to be
-            encrypted
+            any 8-byte string
         """,
     ),
     option(
@@ -104,7 +103,7 @@ add_cipher_options(
     option(
         "-m",
         "--mode",
-        type=Choice(["ecb", "cbc", "cfb", "ofb", "ctr", "openpgp", "eax"]),
+        type=Choice(["ecb", "cbc", "cfb", "ofb", "ctr"]),
         required=True,
         help="""
             one of DES cipher modes:
@@ -115,8 +114,6 @@ add_cipher_options(
             - CFB
             - OFB
             - CTR
-            - OPENPGP
-            - EAX
         """,
     ),
 )
