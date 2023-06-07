@@ -10,32 +10,39 @@ from ...ui import add_cipher_options
 class Book(BaseCipher):
     def __init__(self, text: str, key: str, key_from_file: str):
         self.unicode_size = int(0x110000)
-        self.text = text.strip()
+        self.text = text
         if key_from_file is not None:
             key = load_text_from_file(key_from_file)
         key = self._validate_key(key)
         self.key = self._parse_key(key)
 
-    def encrypt(self) -> str:
+    def encrypt(self) -> str | None:
         encrypted_text = ""
+        invalid_symbols = []
         for symbol in self.text:
             if positions := self.key.get(symbol):
-                encrypted_text += f"{'/'.join(str(i) for i in choice(positions))},"
+                encrypted_text += f"{'/'.join(str(i) for i in choice(positions))}, "
             else:
-                encrypted_text += f"{symbol},"
-        return encrypted_text
+                invalid_symbols.append(symbol)
+        if invalid_symbols:
+            self._terminate(
+                f"Cannot operate symbols which are not in key: "
+                f"{', '.join(invalid_symbols).strip()}"
+            )
+        else:
+            return encrypted_text
 
     def decrypt(self) -> str:
-        decrypted_text = ''
-        for symbol in self.text.split(','):
+        decrypted_text = ""
+        for symbol in self.text.split(", "):
             try:
-                symbol_tuple = tuple(int(i) for i in symbol.split('/'))
+                symbol_tuple = tuple(int(i) for i in symbol.split("/"))
                 for letter, positions in self.key.items():
                     if symbol_tuple in positions:
                         decrypted_text += letter
             except ValueError:
                 decrypted_text += symbol
-        return decrypted_text
+        return decrypted_text.strip()
 
     def bruteforce(self) -> str:
         return "NotImplemented"
@@ -47,9 +54,9 @@ class Book(BaseCipher):
 
     def _parse_key(self, key: str) -> dict[str, tuple[tuple[int, int]]]:
         key_list = key.strip().split("\n")
-        key_dict = {symbol: [] for row in key_list for symbol in row}
+        key_dict = {symbol: [] for row in key_list for symbol in f"{row}\n"}
         for row_num, row in enumerate(key_list):
-            for column_num, symbol in enumerate(row):
+            for column_num, symbol in enumerate(f"{row}\n"):
                 key_dict[symbol].append((row_num, column_num))
         return {k: tuple(v) for k, v in key_dict.items()}
 
