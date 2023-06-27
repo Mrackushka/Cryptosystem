@@ -9,5 +9,5 @@ pip install -r requirements.txt
 ```
 ### Usage
 ```
-./cryptosystem --help
+./cryptosystem.py --help
 ```
